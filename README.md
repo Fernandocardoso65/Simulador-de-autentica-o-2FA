@@ -1,0 +1,1 @@
+# Simulador-de-autentica-o-2FA
