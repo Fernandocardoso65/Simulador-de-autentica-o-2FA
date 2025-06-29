@@ -15,6 +15,16 @@ A autenticação de dois fatores adiciona uma camada extra de segurança ao proc
 
 ## Como testar
 
+
+![image](https://github.com/user-attachments/assets/a98795e1-8c19-49b3-b28c-981c1582bc9a)
+
+![image](https://github.com/user-attachments/assets/bfd48ebe-eaca-444a-aa80-7cabb7f98903)
+
+![image](https://github.com/user-attachments/assets/874477b6-ae16-4011-b788-10278627c4d4)
+
+![image](https://github.com/user-attachments/assets/abde8765-d893-4b2f-a254-8f0accaba8b8)
+
+
 1. Clique no seguinte link:
 
 https://simulador-de-autenticacao-2-fa.vercel.app/
