@@ -1,1 +1,1 @@
-# Simulador-de-autentica-o-2FA
+# Simulador de autenticação 2FA
