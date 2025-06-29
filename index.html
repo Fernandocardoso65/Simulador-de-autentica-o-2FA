@@ -179,7 +179,7 @@
 
   let generatedCode = null;
 
-  // Função para gerar código 6 dígitos
+  // Função javascript para gerar código 6 dígitos
   function gerarCodigo2FA() {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
@@ -205,7 +205,7 @@
     codeSection.style.display = 'block';
   });
 
-  // Botão próximo para etapa de digitar código
+  // Botão próximo para próxima etapa,para usuario digitar o código
   nextToVerifyBtn.addEventListener('click', () => {
     codeSection.style.display = 'none';
     verifyForm.style.display = 'flex';
