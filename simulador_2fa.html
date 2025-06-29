@@ -1,0 +1,253 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Simulador de Autenticação 2FA</title>
+<style>
+  :root {
+    --bg-light: #f5f5f5;
+    --bg-dark: #121212;
+    --text-light: #222;
+    --text-dark: #eee;
+    --primary: #6200ee;
+    --primary-dark: #3700b3;
+  }
+  body {
+    margin: 0; padding: 0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-light);
+    color: var(--text-light);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    transition: background-color 0.3s, color 0.3s;
+  }
+  body.dark {
+    background-color: var(--bg-dark);
+    color: var(--text-dark);
+  }
+  .container {
+    background: white;
+    padding: 2rem 3rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgb(0 0 0 / 0.2);
+    max-width: 400px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  body.dark .container {
+    background: #1e1e1e;
+    box-shadow: 0 4px 20px rgb(255 255 255 / 0.1);
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 1rem;
+    color: var(--primary);
+  }
+  body.dark h1 {
+    color: var(--primary-dark);
+  }
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  label {
+    font-weight: 600;
+  }
+  input[type="text"],
+  input[type="password"],
+  input[type="number"] {
+    padding: 0.6rem 0.8rem;
+    font-size: 1rem;
+    border: 2px solid #ccc;
+    border-radius: 6px;
+    transition: border-color 0.2s;
+  }
+  input:focus {
+    border-color: var(--primary);
+    outline: none;
+  }
+  body.dark input[type="text"],
+  body.dark input[type="password"],
+  body.dark input[type="number"] {
+    background: #333;
+    border-color: #555;
+    color: var(--text-dark);
+  }
+  body.dark input:focus {
+    border-color: var(--primary-dark);
+  }
+  button {
+    padding: 0.7rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 6px;
+    background-color: var(--primary);
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  button:hover {
+    background-color: var(--primary-dark);
+  }
+  .message {
+    margin-top: 1rem;
+    text-align: center;
+    font-weight: 600;
+  }
+  .small-text {
+    font-size: 0.85rem;
+    margin-top: 1rem;
+    color: #555;
+  }
+  body.dark .small-text {
+    color: #aaa;
+  }
+  .toggle-theme {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    background: var(--primary);
+    border: none;
+    color: white;
+    padding: 0.5rem 0.8rem;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    user-select: none;
+  }
+</style>
+</head>
+<body>
+<button class="toggle-theme">Modo Escuro</button>
+
+<div class="container" id="app">
+  <h1>Simulador de Autenticação 2FA</h1>
+  <!-- Etapa 1: Login -->
+  <form id="login-form">
+    <label for="username">Usuário:</label>
+    <input type="text" id="username" name="username" required autocomplete="username" />
+
+    <label for="password">Senha:</label>
+    <input type="password" id="password" name="password" required autocomplete="current-password" />
+
+    <button type="submit">Entrar</button>
+  </form>
+
+  <!-- Etapa 2: Exibe código simulado -->
+  <div id="code-section" style="display:none; text-align:center;">
+    <p>Código 2FA enviado para seu dispositivo:</p>
+    <div id="simulated-code" style="font-size:2rem; font-weight:bold; letter-spacing: 0.3rem; user-select: all;"></div>
+    <button id="next-to-verify">Próximo</button>
+  </div>
+
+  <!-- Etapa 3: Validação do código -->
+  <form id="verify-form" style="display:none;">
+    <label for="code-input">Digite o código 2FA:</label>
+    <input type="number" id="code-input" name="code-input" required autocomplete="one-time-code" />
+    <button type="submit">Validar</button>
+  </form>
+
+  <!-- Mensagem final -->
+  <div id="final-message" style="display:none; margin-top:1.5rem; text-align:center;">
+    <h2>Login realizado com sucesso!</h2>
+    <p class="small-text">
+      A autenticação de dois fatores (2FA) adiciona uma camada extra de segurança ao seu login, dificultando o acesso não autorizado mesmo que sua senha seja comprometida.
+    </p>
+    <p class="small-text"><strong>Por que o 2FA é essencial?</strong></p>
+    <ul style="text-align:left; margin-left:1rem;">
+      <li>Protege contra roubo de senhas.</li>
+      <li>Previne acessos indevidos mesmo com credenciais vazadas.</li>
+      <li>Aumenta a segurança das suas contas e dados pessoais.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+  const loginForm = document.getElementById('login-form');
+  const codeSection = document.getElementById('code-section');
+  const simulatedCodeDiv = document.getElementById('simulated-code');
+  const nextToVerifyBtn = document.getElementById('next-to-verify');
+  const verifyForm = document.getElementById('verify-form');
+  const codeInput = document.getElementById('code-input');
+  const finalMessage = document.getElementById('final-message');
+  const toggleThemeBtn = document.querySelector('.toggle-theme');
+
+  let generatedCode = null;
+
+  // Função para gerar código 6 dígitos
+  function gerarCodigo2FA() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  // Evento envio do login
+  loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    // Pega usuário e senha (não usado para validação real aqui)
+    const user = loginForm.username.value.trim();
+    const pass = loginForm.password.value.trim();
+
+    if (user === '' || pass === '') {
+      alert('Preencha usuário e senha.');
+      return;
+    }
+
+    // Gera o código 2FA simulado
+    generatedCode = gerarCodigo2FA();
+    simulatedCodeDiv.textContent = generatedCode;
+
+    // Esconde login e mostra código
+    loginForm.style.display = 'none';
+    codeSection.style.display = 'block';
+  });
+
+  // Botão próximo para etapa de digitar código
+  nextToVerifyBtn.addEventListener('click', () => {
+    codeSection.style.display = 'none';
+    verifyForm.style.display = 'flex';
+    codeInput.focus();
+  });
+
+  // Validação do código 2FA
+  verifyForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const codeEntered = codeInput.value.trim();
+
+    if (codeEntered === generatedCode) {
+      verifyForm.style.display = 'none';
+      finalMessage.style.display = 'block';
+    } else {
+      alert('Código incorreto! Tente novamente.');
+      codeInput.value = '';
+      codeInput.focus();
+    }
+  });
+
+  // Modo claro/escuro
+  function setDarkMode(enabled) {
+    if (enabled) {
+      document.body.classList.add('dark');
+      toggleThemeBtn.textContent = 'Modo Claro';
+    } else {
+      document.body.classList.remove('dark');
+      toggleThemeBtn.textContent = 'Modo Escuro';
+    }
+  }
+
+  // Checa se o usuário já tem preferência salva
+  if (localStorage.getItem('darkMode') === 'true') {
+    setDarkMode(true);
+  }
+
+  toggleThemeBtn.addEventListener('click', () => {
+    const isDark = document.body.classList.contains('dark');
+    setDarkMode(!isDark);
+    localStorage.setItem('darkMode', !isDark);
+  });
+</script>
+</body>
+</html>
